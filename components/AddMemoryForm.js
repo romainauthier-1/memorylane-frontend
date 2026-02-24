@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { createMemory, uploadFile } from "../services/api";
+import { toast } from "react-toastify";
 
 function AddMemoryForm({ onSuccess }) {
-  const [title, setTitle] = useState("Titre par défaut");
-  const [description, setDescription] = useState("Raconte le souvenir");
-  const [upload, setUpload] = useState(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [upload, setUpload] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [memoryType, setMemoryType] = useState("");
   const [couleurPrincipale, setCouleurPrincipale] = useState("#803FCE");
   const [couleurSecondaire, setCouleurSecondaire] = useState("#C48BF2");
@@ -18,34 +20,73 @@ function AddMemoryForm({ onSuccess }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const fileData = new FormData();
-    fileData.append("file", upload);
-    const urlImage = await uploadFile(fileData);
+
+    // console.log("1. État de upload :", upload);
+
+    if (!upload) {
+      // console.error("Erreur : Aucun fichier sélectionné !");
+      toast.error("Oups, petit problème...");
+      return;
+    }
+
+    const mediasForDB = [];
+
+    for (const file of upload) {
+      const fileData = new FormData();
+      fileData.append("file", file);
+      // console.log("2. Appel de uploadFile...");
+
+      const urlImage = await uploadFile(fileData);
+      // console.log("3. Retour de urlImage :", urlImage);
+
+      mediasForDB.push({
+        url: urlImage,
+        type: file?.type.split("/")[0],
+        caption: "",
+      });
+    }
 
     const memoryData = {
       title: title,
       startDate: startDate,
       endDate: memoryType === "periodMemory" ? endDate : null,
       type: memoryType,
-      thumbnail: urlImage,
+      thumbnail: mediasForDB[0].url,
       position: {
         x: Math.floor(Math.random() * 80),
         y: Math.floor(Math.random() * 80),
       },
-      medias: [
-        {
-          type: upload.type.split("/")[0],
-          url: urlImage,
-          caption: description,
-        },
-      ],
+      medias: mediasForDB,
       colors: [couleurPrincipale, couleurSecondaire],
       description: description,
     };
+    console.log("LE COLIS FINAL :", memoryData);
     const response = await createMemory(memoryData);
     response && onSuccess();
   };
 
+  useEffect(() => {
+    const tempUrl = upload.map((file) => URL.createObjectURL(file));
+
+    setPreviews(tempUrl);
+
+    return () => {
+      tempUrl.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [upload]);
+
+  const previewImages = previews.map((url, i) => {
+    return (
+      <Image
+        key={url}
+        src={url}
+        height={200}
+        width={200}
+        alt={`preview ${i}`}
+        className="object-cover rounded-md "
+      />
+    );
+  });
   return (
     <form
       className="flex flex-col justify-center items-center p-2"
@@ -73,21 +114,13 @@ function AddMemoryForm({ onSuccess }) {
       </label>
       <input
         className="m-1"
+        multiple
         id="upload"
         type="file"
         accept="image/png, image/jpg, image/jpeg, audio/PCM, audio/WAV, audio/mp3, audio/AIFF, video/mov, video/mp4, video/AVI, video/FLV, video/MKV"
-        onChange={(e) => setUpload(e.target.files[0])}
+        onChange={(e) => setUpload(Array.from(e.target.files))}
       ></input>
-      {upload?.name && (
-        <Image
-          id="uploadPreview"
-          src={URL.createObjectURL(upload)}
-          height={200}
-          width={200}
-          alt="preview"
-          className="object-cover rounded-md "
-        />
-      )}
+      {previewImages ? previewImages : "Aucun fichier sélectionné"}
       <input
         className="m-1"
         type="radio"

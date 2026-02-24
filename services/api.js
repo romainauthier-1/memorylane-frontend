@@ -13,7 +13,7 @@ const createMemory = async (memoryData) => {
     `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories`,
     memoryData,
   );
-  console.log(response);
+  // console.log(response);
   return response.data;
 };
 
@@ -22,8 +22,12 @@ const uploadFile = async (formData) => {
     `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads`,
     formData,
   );
-  console.log("URL de l'image: ", response.data.url);
-  return response.data.url;
+  // console.log("URL de l'image: ", response.data.url);
+  const relativePath = response.data.url.replace(
+    process.env.NEXT_PUBLIC_URL_BACKEND,
+    "",
+  );
+  return relativePath;
 };
 
 export { getAllMemories, createMemory, uploadFile };
