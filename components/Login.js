@@ -43,11 +43,12 @@ export default function Login({ loggedIn }) {
       });
       const data = await response.json();
       if (data.result) {
+        // console.log(data);
         localStorage.setItem("token", data.token);
         loggedIn();
         toast.success(`Bienvenue ${username} !`);
       } else {
-        toast.error("Oups, quelquechose s'est mal passé...");
+        toast.error(data.message);
       }
     } catch (error) {
       toast.error(`Oups, ${error}`);

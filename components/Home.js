@@ -14,8 +14,11 @@ function Home() {
   const [isLogged, setIsLogged] = useState(false);
 
   const getMemories = async () => {
-    const memoriesResult = await getAllMemories();
-    setMemories(memoriesResult);
+    const token = localStorage.getItem("token");
+    if (token) {
+      const memoriesResult = await getAllMemories(token);
+      setMemories(memoriesResult);
+    }
   };
 
   useEffect(() => {
@@ -30,7 +33,7 @@ function Home() {
     }
   }, []);
 
-  const loadedMemories = memories.map((memory, i) => {
+  const loadedMemories = memories?.map((memory, i) => {
     return (
       <MemoryCard
         key={i}

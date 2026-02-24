@@ -20,10 +20,11 @@ function AddMemoryForm({ onSuccess }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+    const token = localStorage.getItem("token");
+    // console.log("TOKEN RÉCUPÉRÉ: ", token);
     // console.log("1. État de upload :", upload);
 
-    if (!upload) {
+    if (!upload || !token) {
       // console.error("Erreur : Aucun fichier sélectionné !");
       toast.error("Oups, petit problème...");
       return;
@@ -60,9 +61,10 @@ function AddMemoryForm({ onSuccess }) {
       colors: [couleurPrincipale, couleurSecondaire],
       description: description,
     };
-    console.log("LE COLIS FINAL :", memoryData);
-    const response = await createMemory(memoryData);
-    response && onSuccess();
+    // console.log("LE COLIS FINAL :", memoryData);
+    const response = await createMemory(memoryData, token);
+    // console.log("RÉPONSE FINALE: ", response);
+    response.result && onSuccess();
   };
 
   useEffect(() => {
