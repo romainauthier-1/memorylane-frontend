@@ -2,7 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["localhost", "memorylane-backend.vercel.app"],
+    domains: ["localhost"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "memorylane-backend.vercel.app",
+        port: "",
+        pathname: "/uploads/**",
+      },
+    ],
   },
 };
 
