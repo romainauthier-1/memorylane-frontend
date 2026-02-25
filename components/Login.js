@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-const backend = process.env.NEXT_PUBLIC_URL_BACKEND;
+const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
 import { toast } from "react-toastify";
 
 export default function Login({ loggedIn }) {
