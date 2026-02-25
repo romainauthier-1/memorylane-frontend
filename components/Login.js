@@ -19,6 +19,7 @@ export default function Login({ loggedIn }) {
         }),
       });
       const data = await response.json();
+      console.log("Données reçues du serveur: ", data);
       if (data.result) {
         localStorage.setItem("token", data.token);
         loggedIn();
