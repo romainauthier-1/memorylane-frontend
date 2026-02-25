@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
+const backend = process.env.NEXT_PUBLIC_URL_BACKEND;
 import { toast } from "react-toastify";
 
 export default function Login({ loggedIn }) {
@@ -52,8 +52,8 @@ export default function Login({ loggedIn }) {
         loggedIn();
         toast.success(`Bienvenue ${username} !`);
       } else {
-        console.log("4. Échec côté serveur :", data.message);
-        toast.error(data.message);
+        console.log("4. Échec côté serveur :", data.error);
+        toast.error(data.error);
       }
     } catch (error) {
       console.error("ERREUR DÉTECTÉE :", error);
