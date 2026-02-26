@@ -39,12 +39,15 @@ function AddMemoryForm({ onSuccess }) {
 
       const infosImage = await uploadFile(fileData);
       // console.log("3. Retour de urlImage :", urlImage);
-
-      mediasForDB.push({
-        url: infosImage.url,
-        type: infosImage.type,
-        caption: "",
-      });
+      if (infosImage && infosImage.result) {
+        mediasForDB.push({
+          url: infosImage.url,
+          type: infosImage.type,
+          caption: "",
+        });
+      } else {
+        throw new Error("L'upload a échoué sur le serveur");
+      }
     }
 
     const memoryData = {
