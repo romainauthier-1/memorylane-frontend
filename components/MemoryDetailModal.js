@@ -25,11 +25,17 @@ export default function MemoryDetailModal({ memory, onClose }) {
 
   return (
     <div className="z-10 fixed inset-0 bg-black/70 flex flex-col items-center justify-center min-h-screen max-w-full">
-      <div className="bg-slate-200 h-4/5 w-4/5 rounded-xl flex flex-col ">
+      <div
+        style={{ backgroundColor: memory.colors[0] }}
+        className=" h-4/5 w-4/5 rounded-xl flex flex-col "
+      >
         <button className="text-right m-3 p-3" onClick={onClose}>
           X
         </button>
-        <h3 className="text-center m-3 p-3 text-4xl tracking-wider">
+        <h3
+          style={{ color: memory.colors[1] }}
+          className="text-center m-3 p-3 text-4xl tracking-wider"
+        >
           {memory.title}
         </h3>
         <div className="flex flex-row flex-nowrap w-full h-full justify-evenly items-center overflow-x-scroll">

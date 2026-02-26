@@ -43,7 +43,7 @@ function AddMemoryForm({ onSuccess }) {
         mediasForDB.push({
           url: infosImage.url,
           type: infosImage.type,
-          caption: "",
+          caption: description,
         });
       } else {
         console.log("InfosImage qui a échoué: ", infosImage);
