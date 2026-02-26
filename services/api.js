@@ -25,12 +25,14 @@ const uploadFile = async (formData) => {
       `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads`,
       formData,
     );
+    // ANCIENNE VERSION
     // console.log("URL de l'image: ", response.data.url);
-    const relativePath = response.data.url.replace(
-      process.env.NEXT_PUBLIC_URL_BACKEND,
-      "",
-    );
-    return relativePath;
+    // const relativePath = response.data.url.replace(
+    //   process.env.NEXT_PUBLIC_URL_BACKEND,
+    //   "",
+    // );
+    // return relativePath;
+    return response.url;
   } catch (error) {
     console.error(error);
     return;

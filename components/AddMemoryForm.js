@@ -37,12 +37,12 @@ function AddMemoryForm({ onSuccess }) {
       fileData.append("file", file);
       // console.log("2. Appel de uploadFile...");
 
-      const urlImage = await uploadFile(fileData);
+      const infosImage = await uploadFile(fileData);
       // console.log("3. Retour de urlImage :", urlImage);
 
       mediasForDB.push({
-        url: urlImage,
-        type: file?.type.split("/")[0],
+        url: infosImage.url,
+        type: infosImage.type,
         caption: "",
       });
     }
