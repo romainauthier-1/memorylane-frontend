@@ -33,7 +33,7 @@ export default function Login({ loggedIn }) {
   };
 
   const handleSignIn = async (username, password) => {
-    console.log("1. Clic détecté, envoi de la requête...");
+    // console.log("1. Clic détecté, envoi de la requête...");
     try {
       const response = await fetch(`${backend}/user/signin`, {
         method: "POST",
@@ -43,20 +43,20 @@ export default function Login({ loggedIn }) {
           password: password,
         }),
       });
-      console.log("2. Réponse reçue, status :", response.status);
+      // console.log("2. Réponse reçue, status :", response.status);
       const data = await response.json();
-      console.log("3. JSON parsé, contenu de data :", data);
+      // console.log("3. JSON parsé, contenu de data :", data);
       if (data.result) {
-        console.log("4. Succès ! Enregistrement du token...");
+        // console.log("4. Succès ! Enregistrement du token...");
         localStorage.setItem("token", data.token);
         loggedIn();
         toast.success(`Bienvenue ${username} !`);
       } else {
-        console.log("4. Échec côté serveur :", data.error);
+        // console.log("4. Échec côté serveur :", data.error);
         toast.error(data.error);
       }
     } catch (error) {
-      console.error("ERREUR DÉTECTÉE :", error);
+      // console.error("ERREUR DÉTECTÉE :", error);
       toast.error(`Oups, ${error}`);
     }
   };

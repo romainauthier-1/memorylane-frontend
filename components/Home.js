@@ -72,7 +72,7 @@ function Home() {
   };
 
   const loggedIn = () => {
-    console.log("Fonction loggedIn appelée dans Home");
+    // console.log("Fonction loggedIn appelée dans Home");
     setIsLogged(true);
   };
 
