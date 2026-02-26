@@ -21,7 +21,7 @@ const createMemory = async (memoryData, token) => {
 
 const uploadFile = async (formData) => {
   try {
-    const response = await axios.post(
+    const data = await axios.post(
       `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads`,
       formData,
     );
@@ -32,6 +32,7 @@ const uploadFile = async (formData) => {
     //   "",
     // );
     // return relativePath;
+    const response = await data.json();
     return response.url;
   } catch (error) {
     console.error(error);

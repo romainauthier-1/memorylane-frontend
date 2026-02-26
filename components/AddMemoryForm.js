@@ -46,6 +46,7 @@ function AddMemoryForm({ onSuccess }) {
           caption: "",
         });
       } else {
+        console.log("InfosImage qui a échoué: ", infosImage);
         toast.error("L'upload a échoué, sorry");
         throw new Error("L'upload a échoué sur le serveur");
       }
