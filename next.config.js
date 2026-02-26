@@ -6,9 +6,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "memorylane-backend.vercel.app",
-        port: "",
-        pathname: "/uploads/**",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
     ],
   },
