@@ -169,30 +169,35 @@ function Home() {
           ) : (
             <p className="m-7 ">Bientôt tes souvenirs</p>
           )}
-          {!isLogged && <Login loggedIn={loggedIn} />}
-          <button
-            onClick={handleAddMemoryClick}
-            className="bg-purple-700 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform m-10"
-          >
-            Ajouter un souvenir
-          </button>
         </div>
-        {isModalOpen && <AddMemoryForm onSuccess={onSuccess} />}
-        {selectedMemory && !isEditing && (
-          <MemoryDetailModal
-            memory={selectedMemory}
-            onClose={() => dispatch(setSelectedMemory(null))}
-          />
+        {!isLogged ? (
+          <Login loggedIn={loggedIn} />
+        ) : (
+          <>
+            <button
+              onClick={handleAddMemoryClick}
+              className="bg-purple-700 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform m-10"
+            >
+              Ajouter un souvenir
+            </button>
+            {isModalOpen && <AddMemoryForm onSuccess={onSuccess} />}
+            {selectedMemory && !isEditing && (
+              <MemoryDetailModal
+                memory={selectedMemory}
+                onClose={() => dispatch(setSelectedMemory(null))}
+              />
+            )}
+            <div className="relative w-full min-h-[150vh] mt-10">
+              {loadedMemories}
+            </div>
+            <button
+              onClick={() => handleLogOut()}
+              className="bg-red-700 text-white mt-80 mb-20 rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
+            >
+              Déconnexion
+            </button>
+          </>
         )}
-        <div className="relative w-full min-h-[150vh] mt-10">
-          {loadedMemories}
-        </div>
-        <button
-          onClick={() => handleLogOut()}
-          className="bg-red-700 text-white mt-80 mb-20 rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-        >
-          Déconnexion
-        </button>
       </main>
     </div>
   );
