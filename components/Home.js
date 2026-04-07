@@ -1,23 +1,39 @@
 import styles from "../styles/Home.module.css";
 import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setMemories, addMemory, deleteMemory } from "../reducers/memories";
 import { getAllMemories } from "../services/api";
 import MemoryCard from "./MemoryCard";
 import AddMemoryForm from "./AddMemoryForm";
 import { toast } from "react-toastify";
 import MemoryDetailModal from "./MemoryDetailModal";
 import Login from "./Login";
+import {
+  toggleIsModalOpen,
+  toggleIsEditing,
+  setSelectedMemory,
+  toggleIsLogged,
+} from "../reducers/states";
 
 function Home() {
-  const [memories, setMemories] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedMemory, setSelectedMemory] = useState(null);
-  const [isLogged, setIsLogged] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [selectedMemory, setSelectedMemory] = useState(null);
+  // const [isLogged, setIsLogged] = useState(false);
+  // const [isEditing, setIsEditing] = useState(false);
+
+  const isEditing = useSelector((state) => state.states.isEditing);
+  const isLogged = useSelector((state) => state.states.isLogged);
+  const selectedMemory = useSelector((state) => state.states.selectedMemory);
+  const isModalOpen = useSelector((state) => state.states.isModalOpen);
+  const memories = useSelector((state) => state.memories.value);
+
+  const dispatch = useDispatch();
 
   const getMemories = async () => {
     const token = localStorage.getItem("token");
     if (token) {
       const memoriesResult = await getAllMemories(token);
-      setMemories(memoriesResult);
+      dispatch(setMemories(memoriesResult));
     }
   };
 
@@ -29,25 +45,47 @@ function Home() {
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      setIsLogged(true);
+      dispatch(toggleIsLogged(true));
     }
   }, []);
 
-  const loadedMemories = memories?.map((memory, i) => {
+  const sortedMemories =
+    memories && Array.isArray(memories)
+      ? [...memories]?.sort(
+          (a, b) =>
+            new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+        )
+      : [];
+
+  const loadedMemories = sortedMemories?.map((memory, i) => {
+    const verticalStep = 100 / sortedMemories.length;
+
+    const positionY = i * verticalStep + Math.random() * 10;
+    const positionX = Math.floor(Math.random() * 50) + 20;
     return (
       <MemoryCard
         key={i}
+        memory={memory}
         src={memory.thumbnail}
         alt={memory.title}
         title={memory.title}
         caption={memory.medias[0].caption}
-        onDetailClick={() => setSelectedMemory(memory)}
+        positionY={positionY}
+        positionX={positionX}
+        onDetailClick={() => dispatch(setSelectedMemory(memory))}
+        onUpdateClick={() => openChangeForm(memory)}
       />
     );
   });
 
   const handleAddMemoryClick = () => {
-    setIsModalOpen(!isModalOpen);
+    isModalOpen === false && dispatch(toggleIsModalOpen(true));
+
+    if (isModalOpen === true) {
+      dispatch(setSelectedMemory(null));
+      dispatch(toggleIsModalOpen(false));
+      dispatch(toggleIsEditing(false));
+    }
   };
   // const success = () => {
   //   toast.success("Ce clic est un succès !");
@@ -66,28 +104,43 @@ function Home() {
   // };
 
   const onSuccess = () => {
-    setIsModalOpen(false);
+    dispatch(toggleIsModalOpen(false));
     getMemories();
-    toast.success("Souvenir enregistré !");
+    toast.success(isEditing ? "Souvenir modifié !" : "Souvenir enregistré !");
+    dispatch(setSelectedMemory(null));
   };
 
   const loggedIn = () => {
     // console.log("Fonction loggedIn appelée dans Home");
-    setIsLogged(true);
+    dispatch(toggleIsLogged(true));
   };
 
   const handleLogOut = () => {
-    setIsLogged(false);
+    dispatch(toggleIsLogged(false));
     localStorage.removeItem("token");
+  };
+
+  const openChangeForm = (memory) => {
+    dispatch(toggleIsEditing(true));
+    dispatch(setSelectedMemory(memory));
+    dispatch(toggleIsModalOpen(true));
   };
 
   return (
     <div>
-      <main className="flex flex-col content-center min-h-screen justify-center items-center">
-        <h1 className=" font-sans text-4xl text-purple-600 tracking-widest scale-150 animate-pulse uppercase m-6">
-          Memory Lane
-        </h1>
-        {/* <button
+      <main
+        className="flex flex-col content-center min-h-screen justify-center items-center"
+        style={{
+          backgroundColor: isModalOpen
+            ? "rgba(0, 0, 0, 0.5)"
+            : "rgba(148, 163, 184, 0.7)",
+        }}
+      >
+        <div className="flex flex-col justify-center items-center">
+          <h1 className=" font-sans  text-4xl text-purple-600 tracking-widest scale-150 animate-pulse uppercase m-6">
+            Memory Lane
+          </h1>
+          {/* <button
           onClick={info}
           className="bg-blue-500 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
         >
@@ -111,35 +164,35 @@ function Home() {
         >
           SUCCESS
         </button> */}
-        <p className="m-7">Bientôt nos souvenirs</p>
-        {!isLogged ? (
-          <Login loggedIn={loggedIn} />
-        ) : (
-          <>
-            <button
-              onClick={handleAddMemoryClick}
-              className="bg-purple-700 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-            >
-              Ajouter un souvenir
-            </button>
-            {isModalOpen && <AddMemoryForm onSuccess={onSuccess} />}
-            {selectedMemory && (
-              <MemoryDetailModal
-                memory={selectedMemory}
-                onClose={() => setSelectedMemory(null)}
-              />
-            )}
-            <div className="flex flex-row justify-evenly flex-wrap">
-              {loadedMemories}
-            </div>
-            <button
-              onClick={() => handleLogOut()}
-              className="bg-red-700 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-            >
-              Déconnexion
-            </button>
-          </>
+          {memories?.length > 0 ? (
+            <p className="m-7 ">Retrouves tes souvenirs !</p>
+          ) : (
+            <p className="m-7 ">Bientôt tes souvenirs</p>
+          )}
+          {!isLogged && <Login loggedIn={loggedIn} />}
+          <button
+            onClick={handleAddMemoryClick}
+            className="bg-purple-700 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform m-10"
+          >
+            Ajouter un souvenir
+          </button>
+        </div>
+        {isModalOpen && <AddMemoryForm onSuccess={onSuccess} />}
+        {selectedMemory && !isEditing && (
+          <MemoryDetailModal
+            memory={selectedMemory}
+            onClose={() => dispatch(setSelectedMemory(null))}
+          />
         )}
+        <div className="relative w-full min-h-[150vh] mt-10">
+          {loadedMemories}
+        </div>
+        <button
+          onClick={() => handleLogOut()}
+          className="bg-red-700 text-white mt-80 mb-20 rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
+        >
+          Déconnexion
+        </button>
       </main>
     </div>
   );

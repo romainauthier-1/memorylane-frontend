@@ -10,13 +10,25 @@ const getAllMemories = async (token) => {
 };
 
 const createMemory = async (memoryData, token) => {
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories`,
-    memoryData,
-    { headers: { Authorization: `Bearer ${token}` } },
-  );
-  // console.log(response);
-  return response.data;
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(memoryData),
+      },
+    );
+    const data = await response.json();
+
+    return data;
+  } catch (err) {
+    console.error(err.message);
+    return { result: false, error: err.message };
+  }
 };
 
 const uploadFile = async (formData) => {

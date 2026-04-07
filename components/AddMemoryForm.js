@@ -1,21 +1,52 @@
 import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Image from "next/image";
 import { createMemory, uploadFile } from "../services/api";
 import { toast } from "react-toastify";
+import {
+  toggleIsModalOpen,
+  toggleIsEditing,
+  setSelectedMemory,
+  toggleIsLogged,
+} from "../reducers/states";
+import { setMemories } from "../reducers/memories";
+import { X } from "lucide-react";
 
 function AddMemoryForm({ onSuccess }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const isEditing = useSelector((state) => state.states.isEditing);
+  const isLogged = useSelector((state) => state.states.isLogged);
+  const selectedMemory = useSelector((state) => state.states.selectedMemory);
+  const isModalOpen = useSelector((state) => state.states.isModalOpen);
+  const memories = useSelector((state) => state.memories.value);
+
+  const dispatch = useDispatch();
+
+  const [title, setTitle] = useState(
+    selectedMemory ? selectedMemory.title : "",
+  );
+  const [description, setDescription] = useState(
+    selectedMemory ? selectedMemory.description : "",
+  );
   const [upload, setUpload] = useState([]);
   const [previews, setPreviews] = useState([]);
-  const [memoryType, setMemoryType] = useState("");
-  const [couleurPrincipale, setCouleurPrincipale] = useState("#803FCE");
-  const [couleurSecondaire, setCouleurSecondaire] = useState("#C48BF2");
+  const [memoryType, setMemoryType] = useState(
+    selectedMemory ? selectedMemory.type : "",
+  );
+  const [couleurPrincipale, setCouleurPrincipale] = useState(
+    selectedMemory ? selectedMemory.colors[0] : "#803FCE",
+  );
+  const [couleurSecondaire, setCouleurSecondaire] = useState(
+    selectedMemory ? selectedMemory.colors[1] : "#C48BF2",
+  );
   const [startDate, setStartDate] = useState(
-    new Date().toISOString().split("T")[0],
+    selectedMemory
+      ? selectedMemory.startDate
+      : new Date().toISOString().split("T")[0],
   );
   const [endDate, setEndDate] = useState(
-    new Date().toISOString().split("T")[0],
+    selectedMemory
+      ? selectedMemory.endDate
+      : new Date().toISOString().split("T")[0],
   );
 
   const handleSubmit = async (event) => {
@@ -38,7 +69,7 @@ function AddMemoryForm({ onSuccess }) {
       // console.log("2. Appel de uploadFile...");
 
       const infosImage = await uploadFile(fileData);
-      // console.log("3. Retour de urlImage :", urlImage);
+      // console.log("3. Retour de urlImage :", infosImage);
       if (infosImage && infosImage.result) {
         mediasForDB.push({
           url: infosImage.url,
@@ -46,7 +77,7 @@ function AddMemoryForm({ onSuccess }) {
           caption: description,
         });
       } else {
-        console.log("InfosImage qui a échoué: ", infosImage);
+        // console.log("InfosImage qui a échoué: ", infosImage);
         toast.error("L'upload a échoué, sorry");
         throw new Error("L'upload a échoué sur le serveur");
       }
@@ -55,7 +86,7 @@ function AddMemoryForm({ onSuccess }) {
     const memoryData = {
       title: title,
       startDate: startDate,
-      endDate: memoryType === "periodMemory" ? endDate : null,
+      endDate: memoryType === "period" ? endDate : null,
       type: memoryType,
       thumbnail: mediasForDB[0].url,
       position: {
@@ -94,121 +125,226 @@ function AddMemoryForm({ onSuccess }) {
       />
     );
   });
+
+  const handleUpdate = async (e, memoryId) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            description,
+            type: memoryType,
+            startDate,
+            endDate,
+            colors: [couleurPrincipale, couleurSecondaire],
+          }),
+        },
+      );
+      const data = await response.json();
+
+      if (data.result) {
+        onSuccess();
+        dispatch(toggleIsModalOpen(false));
+        dispatch(toggleIsEditing(false));
+        setTitle(null);
+        setDescription(null);
+        setMemoryType(null);
+        setStartDate(null);
+        setEndDate(null);
+        setCouleurPrincipale("#803FCE");
+        setCouleurSecondaire("#C48BF2");
+      } else {
+        toast.error(data.error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <form
-      className="flex flex-col justify-center items-center p-2"
-      method="post"
-      onSubmit={handleSubmit}
-    >
-      <input
-        className="m-2 text-center border rounded border-slate-300 text-gray-800 p-2"
-        id="title"
-        type="text"
-        required
-        placeholder="Titre du souvenir"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      ></input>
-      <textarea
-        className="m-2 text-center border-2 rounded border-slate-300 text-gray-800 p-2"
-        id="description"
-        placeholder="Raconte le souvenir"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      ></textarea>
-      <label className="m-2 text-center" for="upload">
-        Ajouter un fichier
-      </label>
-      <input
-        className="m-1"
-        multiple
-        id="upload"
-        type="file"
-        accept="image/png, image/jpg, image/jpeg, audio/PCM, audio/WAV, audio/mp3, audio/AIFF, video/mov, video/mp4, video/AVI, video/FLV, video/MKV"
-        onChange={(e) => setUpload(Array.from(e.target.files))}
-      ></input>
-      {previewImages ? previewImages : "Aucun fichier sélectionné"}
-      <input
-        className="m-1"
-        type="radio"
-        name="memoryType"
-        id="momentMemory"
-        value="moment"
-        checked={memoryType === "moment"}
-        onChange={(e) => setMemoryType(e.target.value)}
-      ></input>
-      <label className="m-1" for="momentMemory">
-        Moment
-      </label>
-      <input
-        className="m-1"
-        type="radio"
-        name="memoryType"
-        id="periodMemory"
-        value="period"
-        checked={memoryType === "period"}
-        onChange={(e) => setMemoryType(e.target.value)}
-      ></input>
-      <label className="m-1" for="periodMemory">
-        Période
-      </label>
-      {memoryType === "moment" && (
-        <input
-          id="startDate"
-          type="date"
-          className="m-2"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-      )}
-      {memoryType === "period" && (
-        <div id="dateContainer">
-          {" "}
-          <input
-            id="startDate"
-            type="date"
-            className="m-2"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-          <input
-            id="EndDate"
-            type="date"
-            className="m-2"
-            min={startDate}
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />{" "}
-        </div>
-      )}
-      <input
-        className="m-1"
-        type="color"
-        id="couleurPrincipale"
-        value={couleurPrincipale}
-        onChange={(e) => setCouleurPrincipale(e.target.value)}
-      ></input>
-      <label className="m-1" for="couleurPrincipale">
-        Sélectionner la couleur principale du souvenir
-      </label>
-      <input
-        className="m-1"
-        type="color"
-        id="couleurSecondaire"
-        value={couleurSecondaire}
-        onChange={(e) => setCouleurSecondaire(e.target.value)}
-      ></input>
-      <label className="m-1" for="couleurSecondaire">
-        Sélectionner la couleur secondaire du souvenir
-      </label>
-      <button
-        className="border border-cyan-700 rounded-md m-4 p-3"
-        type="submit"
-        value="Ajouter le souvenir"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <form
+        className="flex flex-col justify-center items-center p-2 z-10 bg-slate-100 rounded-lg"
+        method="post"
+        onSubmit={handleSubmit}
       >
-        Ajouter le souvenir
-      </button>
-    </form>
+        <X
+          className="cursor-pointer hover:scale-110 transition-transform"
+          color="black"
+          onClick={() => dispatch(toggleIsModalOpen(false))}
+        />
+        <input
+          className="m-2 text-center   bg-transparent rounded text-gray-800 p-2"
+          id="title"
+          type="text"
+          required
+          placeholder="Titre du souvenir"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        ></input>
+        <textarea
+          className="m-2 text-center  bg-transparent rounded  text-gray-800 p-2"
+          id="description"
+          placeholder="Raconte le souvenir"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        ></textarea>
+        {!isEditing && (
+          <>
+            <label className="m-2 text-center" for="upload">
+              Ajouter un ou plusieurs fichier(s)
+            </label>
+            <input
+              className="m-1"
+              multiple
+              id="upload"
+              type="file"
+              accept="image/png, image/jpg, image/jpeg, audio/PCM, audio/WAV, audio/mp3, audio/AIFF, video/mov, video/mp4, video/AVI, video/FLV, video/MKV"
+              onChange={(e) => setUpload(Array.from(e.target.files))}
+            ></input>
+            {previewImages ? previewImages : "Aucun fichier sélectionné"}
+          </>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2 justify-center items-center">
+            <label
+              className={`cursor-pointer text-center p-2 rounded-lg transition-all  hover:bg-white hover:text-cyan-700 hover:font-bold ${
+                memoryType === "moment"
+                  ? "bg-white shadow-sm text-cyan-700 font-bold"
+                  : "text-slate-500"
+              }`}
+              for="momentMemory"
+            >
+              <input
+                className="hidden"
+                type="radio"
+                name="memoryType"
+                id="momentMemory"
+                value="moment"
+                checked={memoryType === "moment"}
+                onChange={(e) => setMemoryType(e.target.value)}
+              ></input>
+              Moment
+            </label>
+          </div>
+          <div className="flex flex-col gap-2 justify-center items-center">
+            <label
+              className={`cursor-pointer text-center p-2 rounded-lg transition-all hover:bg-white hover:text-cyan-700 hover:font-bold ${
+                memoryType === "period"
+                  ? "bg-white shadow-sm text-cyan-700 font-bold"
+                  : "text-slate-500"
+              }`}
+              for="periodMemory"
+            >
+              <input
+                className="hidden"
+                type="radio"
+                name="memoryType"
+                id="periodMemory"
+                value="period"
+                checked={memoryType === "period"}
+                onChange={(e) => setMemoryType(e.target.value)}
+              ></input>
+              Période
+            </label>
+          </div>
+        </div>
+        {memoryType === "moment" && (
+          <div className="flex justify-center w-full">
+            <input
+              id="startDate"
+              type="date"
+              className="m-2 p-1 bg-white rounded-lg border-none text-center"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+        )}
+        {memoryType === "period" && (
+          <div className="flex justify-center w-full" id="dateContainer">
+            <input
+              id="startDate"
+              type="date"
+              className="m-2 p-1 bg-white rounded-lg border-none text-center"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <input
+              id="EndDate"
+              type="date"
+              className="m-2 p-1 bg-white rounded-lg border-none text-center"
+              min={startDate}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />{" "}
+          </div>
+        )}
+        <div className="flex gap-10">
+          <div className="flex flex-col items-center gap-2">
+            <label
+              htmlFor="couleurPrincipale"
+              className="m-1 rounded-full h-10 w-10 border-2 border-white shadow-lg cursor-pointer transition-transform hover:scale-110"
+              style={{ backgroundColor: couleurPrincipale }}
+            />
+            <input
+              className="w-1 h-1 opacity-0"
+              type="color"
+              id="couleurPrincipale"
+              value={couleurPrincipale}
+              onChange={(e) => setCouleurPrincipale(e.target.value)}
+            ></input>
+            <span className="text-xs text-slate-500 text-center w-20">
+              Couleur principale
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <label
+              htmlFor="couleurSecondaire"
+              className="m-1 rounded-full h-10 w-10 border-2 border-white shadow-lg cursor-pointer transition-transform hover:scale-110"
+              style={{ backgroundColor: couleurSecondaire }}
+            />
+            <input
+              className="w-1 h-1 opacity-0"
+              type="color"
+              id="couleurSecondaire"
+              value={couleurSecondaire}
+              onChange={(e) => setCouleurSecondaire(e.target.value)}
+            ></input>
+            <span className="text-xs text-slate-500 text-center w-20">
+              Couleur secondaire
+            </span>
+          </div>
+        </div>
+        {!isEditing ? (
+          <button
+            className=" rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white"
+            style={{
+              background: `linear-gradient(135deg, ${couleurPrincipale} 0%, ${couleurSecondaire} 100%)`,
+            }}
+            type="submit"
+            value="Ajouter le souvenir"
+          >
+            <span>Ajouter le souvenir</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className=" rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white"
+            style={{
+              background: `linear-gradient(135deg, ${couleurPrincipale} 0%, ${couleurSecondaire} 100%)`,
+            }}
+            onClick={(e) => handleUpdate(e, selectedMemory._id)}
+            value="Modifier le souvenir"
+          >
+            <span>Modifier le souvenir</span>
+          </button>
+        )}
+      </form>
+    </div>
   );
 }
 

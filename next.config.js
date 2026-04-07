@@ -2,7 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["localhost"],
+    domains: [
+      "localhost",
+      "memorylane-backend.vercel.app",
+      "res.cloudinary.com",
+    ],
     remotePatterns: [
       {
         protocol: "https",

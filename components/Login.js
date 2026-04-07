@@ -10,6 +10,7 @@ export default function Login({ loggedIn }) {
 
   const handleSignUp = async (username, password) => {
     try {
+      console.log("INSCRIPTION: ", backend);
       const response = await fetch(`${backend}/user/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
