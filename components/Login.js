@@ -64,16 +64,16 @@ export default function Login({ loggedIn }) {
 
   return (
     <div className="flex flex-col min-h-[100vh] min-w-[100vw]">
-      <div className="flex flex-row justify-evenly p-6 m-4 h-full">
-        <div className="flex h-full m-6 p-6 border-purple-800 border-2 rounded-xl flex-col">
+      <div className="flex flex-col justify-center items-center md:flex-row md:justify-evenly gap-8 p-4">
+        <div className="flex h-full max-w-[350px] m-6 p-6 border-purple-800 border-2 rounded-xl flex-col">
           <input
-            className="p-3 border-b"
+            className="p-3 border-b rounded-lg mt-3 mb-3 outline-none focus:border-purple-500 transition-colors"
             placeholder="Nom d'utilisateur.ice"
             onChange={(e) => setUsernameSignIn(e.target.value)}
             value={usernameSignIn}
           ></input>
           <input
-            className="p-3 border-b"
+            className="p-3 border-b rounded-lg mt-3 mb-3 outline-none focus:border-purple-500 transition-colors"
             placeholder="Mot de passe"
             type="password"
             onChange={(e) => setPasswordSignIn(e.target.value)}
@@ -86,15 +86,15 @@ export default function Login({ loggedIn }) {
             CONNEXION
           </button>
         </div>
-        <div className="flex h-full m-6 p-6 border-purple-800 border-2 rounded-xl flex-col">
+        <div className="flex h-full max-w-[350px] m-6 p-6 border-purple-800 border-2 rounded-xl flex-col">
           <input
-            className="p-3 border-b"
+            className="p-3 border-b rounded-lg mt-3 mb-3 outline-none focus:border-purple-500 transition-colors"
             placeholder="Nom d'utilisateur.ice"
             onChange={(e) => setUsernameSignUp(e.target.value)}
             value={usernameSignUp}
           ></input>
           <input
-            className="p-3 border-b"
+            className="p-3 border-b rounded-lg mt-3 mb-3 outline-none focus:border-purple-500 transition-colors"
             placeholder="Mot de passe"
             type="password"
             onChange={(e) => setPasswordSignUp(e.target.value)}

@@ -8,6 +8,7 @@ import {
   toggleIsEditing,
   setSelectedMemory,
   toggleIsLogged,
+  toggleIsLoading,
 } from "../reducers/states";
 import { setMemories } from "../reducers/memories";
 import { X } from "lucide-react";
@@ -18,6 +19,7 @@ function AddMemoryForm({ onSuccess }) {
   const selectedMemory = useSelector((state) => state.states.selectedMemory);
   const isModalOpen = useSelector((state) => state.states.isModalOpen);
   const memories = useSelector((state) => state.memories.value);
+  const isLoading = useSelector((state) => state.states.isLoading);
 
   const dispatch = useDispatch();
 
@@ -51,6 +53,11 @@ function AddMemoryForm({ onSuccess }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    dispatch(toggleIsLoading(true));
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
     const token = localStorage.getItem("token");
     // console.log("TOKEN RÉCUPÉRÉ: ", token);
     // console.log("1. État de upload :", upload);
@@ -64,8 +71,25 @@ function AddMemoryForm({ onSuccess }) {
     const mediasForDB = [];
 
     for (const file of upload) {
+      let fileToUpload = file;
+      if (file.name.toLowerCase().endsWith(".heic")) {
+        const heic2any = (await import("heic2any")).default;
+        const blob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.6,
+        });
+
+        fileToUpload = new File(
+          [Array.isArray(blob) ? blob[0] : blob],
+          file.name.replace(/\.heic/i, ".jpg"),
+          { type: "image/jpeg" },
+        );
+      }
+
       const fileData = new FormData();
-      fileData.append("file", file);
+      console.log("FileToUpload:", fileToUpload);
+      fileData.append("file", fileToUpload);
       // console.log("2. Appel de uploadFile...");
 
       const infosImage = await uploadFile(fileData);
@@ -79,7 +103,8 @@ function AddMemoryForm({ onSuccess }) {
       } else {
         // console.log("InfosImage qui a échoué: ", infosImage);
         toast.error("L'upload a échoué, sorry");
-        throw new Error("L'upload a échoué sur le serveur");
+        console.error("L'upload a échoué sur le serveur");
+        return;
       }
     }
 
@@ -100,6 +125,7 @@ function AddMemoryForm({ onSuccess }) {
     // console.log("LE COLIS FINAL :", memoryData);
     const response = await createMemory(memoryData, token);
     // console.log("RÉPONSE FINALE: ", response);
+    dispatch(toggleIsLoading(false));
     response.result && onSuccess();
   };
 
@@ -127,6 +153,7 @@ function AddMemoryForm({ onSuccess }) {
   });
 
   const handleUpdate = async (e, memoryId) => {
+    dispatch(toggleIsLoading(true));
     e.preventDefault();
     try {
       const response = await fetch(
@@ -148,7 +175,6 @@ function AddMemoryForm({ onSuccess }) {
 
       if (data.result) {
         onSuccess();
-        dispatch(toggleIsModalOpen(false));
         dispatch(toggleIsEditing(false));
         setTitle(null);
         setDescription(null);
@@ -157,6 +183,7 @@ function AddMemoryForm({ onSuccess }) {
         setEndDate(null);
         setCouleurPrincipale("#803FCE");
         setCouleurSecondaire("#C48BF2");
+        dispatch(toggleIsLoading(false));
       } else {
         toast.error(data.error);
       }
@@ -168,7 +195,7 @@ function AddMemoryForm({ onSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <form
-        className="flex flex-col justify-center items-center p-2 z-10 bg-slate-100 rounded-lg"
+        className="flex flex-col justify-center items-center p-2 z-10 bg-slate-100 rounded-lg w-[95%] md:w-[70%] lg:max-w-md"
         method="post"
         onSubmit={handleSubmit}
       >
@@ -321,7 +348,8 @@ function AddMemoryForm({ onSuccess }) {
         </div>
         {!isEditing ? (
           <button
-            className=" rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white"
+            disabled={isLoading}
+            className={`${isLoading && "opacity-50 cursor-not-allowed"} rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white`}
             style={{
               background: `linear-gradient(135deg, ${couleurPrincipale} 0%, ${couleurSecondaire} 100%)`,
             }}

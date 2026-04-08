@@ -5,6 +5,8 @@ const initialState = {
   isEditing: false,
   selectedMemory: null,
   isLogged: false,
+  isLoading: false,
+  isMobile: false,
 };
 
 export const statesSlice = createSlice({
@@ -23,6 +25,12 @@ export const statesSlice = createSlice({
     toggleIsLogged: (state, action) => {
       state.isLogged = action.payload;
     },
+    toggleIsLoading: (state, action) => {
+      state.isModalOpen = action.payload;
+    },
+    toggleIsMobile: (state, action) => {
+      state.isModalOpen = action.payload;
+    },
   },
 });
 
@@ -31,5 +39,7 @@ export const {
   toggleIsEditing,
   setSelectedMemory,
   toggleIsLogged,
+  toggleIsLoading,
+  toggleIsMobile,
 } = statesSlice.actions;
 export default statesSlice.reducer;

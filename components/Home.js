@@ -13,6 +13,8 @@ import {
   toggleIsEditing,
   setSelectedMemory,
   toggleIsLogged,
+  toggleIsMobile,
+  toggleIsLoading,
 } from "../reducers/states";
 
 function Home() {
@@ -26,6 +28,8 @@ function Home() {
   const selectedMemory = useSelector((state) => state.states.selectedMemory);
   const isModalOpen = useSelector((state) => state.states.isModalOpen);
   const memories = useSelector((state) => state.memories.value);
+  const isMobile = useSelector((state) => state.states.isMobile);
+  const isLoading = useSelector((state) => state.states.isLoading);
 
   const dispatch = useDispatch();
 
@@ -47,7 +51,13 @@ function Home() {
     if (localStorage.getItem("token")) {
       dispatch(toggleIsLogged(true));
     }
+    dispatch(toggleIsMobile(window.innerWidth < 768));
+    dispatch(toggleIsModalOpen(false));
   }, []);
+
+  useEffect(() => {
+    isLoading && toast.info("Chargement en cours, merci de patienter 😎");
+  }, [isLoading]);
 
   const sortedMemories =
     memories && Array.isArray(memories)
@@ -61,7 +71,9 @@ function Home() {
     const verticalStep = 100 / sortedMemories.length;
 
     const positionY = i * verticalStep + Math.random() * 10;
-    const positionX = Math.floor(Math.random() * 50) + 20;
+    const positionX = isMobile
+      ? Math.floor(Math.random() * 40) + 5
+      : Math.floor(Math.random() * 50) + 20;
     return (
       <MemoryCard
         key={i}
@@ -129,15 +141,15 @@ function Home() {
   return (
     <div>
       <main
-        className="flex flex-col content-center min-h-screen justify-center items-center"
+        className="flex flex-col content-center h-full w-full justify-center items-center overflow-hidden"
         style={{
           backgroundColor: isModalOpen
             ? "rgba(0, 0, 0, 0.5)"
-            : "rgba(148, 163, 184, 0.7)",
+            : "rgba(241, 245, 249, 0.5)",
         }}
       >
         <div className="flex flex-col justify-center items-center">
-          <h1 className=" font-sans  text-4xl text-purple-600 tracking-widest scale-150 animate-pulse uppercase m-6">
+          <h1 className=" font-sans  text-3xl md:text-5xl text-purple-600 tracking-widest scale-120 md:scale-150 animate-pulse transform uppercase m-6">
             Memory Lane
           </h1>
           {/* <button

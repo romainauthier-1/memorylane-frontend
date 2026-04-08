@@ -9,7 +9,7 @@ export default function MemoryDetailModal({ memory, onClose }) {
       media.url && media.url.startsWith("http")
         ? media.url
         : `${backendURL}${media.url}`;
-    const videoUrl = media.url.replace(/\.[^/.]+$/, ".mp4");
+    const videoUrl = media.url?.replace(/\.[^/.]+$/, ".mp4");
     return (
       <div
         key={i}

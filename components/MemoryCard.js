@@ -43,7 +43,7 @@ function MemoryCard({
 
   return (
     <div
-      className="bg-violet-100 rounded-xl shadow-xl m-6 p-6 absolute flex flex-col"
+      className="bg-violet-100/50 rounded-xl shadow-xl m-6 p-6 absolute flex flex-col"
       style={{
         top: `${positionY}%`,
         left: `${positionX}%`,

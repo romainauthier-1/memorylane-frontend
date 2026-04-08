@@ -33,18 +33,16 @@ const createMemory = async (memoryData, token) => {
 
 const uploadFile = async (formData) => {
   try {
-    const response = await axios.post(
+    const response = await fetch(
       `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads`,
-      formData,
+      {
+        method: "POST",
+        body: formData,
+      },
     );
-    // ANCIENNE VERSION
-    // console.log("URL de l'image: ", response.data.url);
-    // const relativePath = response.data.url.replace(
-    //   process.env.NEXT_PUBLIC_URL_BACKEND,
-    //   "",
-    // );
-    // return relativePath;
-    return response.data;
+
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error(error);
     return { result: false };

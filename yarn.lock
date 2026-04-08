@@ -2560,6 +2560,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"heic2any@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "heic2any@npm:0.0.4"
+  checksum: 10c0/36a22e1df08de088322ac018d8e5de24911f93d6c2d8b3bd2ea9baeeb8630c031bc1eb9eaa10d4c6c3b4780ed3410e7eb0283ffd3dfb441e370bec8634003c43
+  languageName: node
+  linkType: hard
+
 "html-encoding-sniffer@npm:^3.0.0":
   version: 3.0.0
   resolution: "html-encoding-sniffer@npm:3.0.0"
@@ -4023,6 +4030,7 @@ __metadata:
     "@testing-library/react": "npm:^13.2.0"
     autoprefixer: "npm:^10.4.24"
     axios: "npm:^1.13.4"
+    heic2any: "npm:^0.0.4"
     jest: "npm:^28.1.0"
     jest-environment-jsdom: "npm:^28.1.0"
     lucide-react: "npm:^1.7.0"
