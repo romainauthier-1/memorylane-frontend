@@ -236,7 +236,9 @@ function AddMemoryForm({ onSuccess }) {
               accept="image/png, image/jpg, image/jpeg, audio/PCM, audio/WAV, audio/mp3, audio/AIFF, video/mov, video/mp4, video/AVI, video/FLV, video/MKV"
               onChange={(e) => setUpload(Array.from(e.target.files))}
             ></input>
-            {previewImages ? previewImages : "Aucun fichier sélectionné"}
+            <div className="overflow-scroll">
+              {previewImages ? previewImages : "Aucun fichier sélectionné"}
+            </div>
           </>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
