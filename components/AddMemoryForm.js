@@ -193,9 +193,9 @@ function AddMemoryForm({ onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-scroll">
+    <div className="fixed inset-0 z-50 flex p-4 md:items-center justify-center bg-black/50 backdrop-blur-sm overflow-scroll">
       <form
-        className="flex flex-col justify-center items-center p-2 z-10 bg-slate-100 rounded-lg w-[95%] md:w-[70%] lg:max-w-md"
+        className="flex flex-col my-auto max-h-full justify-center items-center p-2 z-10 bg-slate-100 rounded-lg w-[95%] md:w-[70%] lg:max-w-md"
         method="post"
         onSubmit={handleSubmit}
       >
@@ -236,7 +236,7 @@ function AddMemoryForm({ onSuccess }) {
               accept="image/png, image/jpg, image/jpeg, audio/PCM, audio/WAV, audio/mp3, audio/AIFF, video/mov, video/mp4, video/AVI, video/FLV, video/MKV"
               onChange={(e) => setUpload(Array.from(e.target.files))}
             ></input>
-            <div className="overflow-scroll">
+            <div className="overflow-scroll max-h-48">
               {previewImages ? previewImages : "Aucun fichier sélectionné"}
             </div>
           </>
