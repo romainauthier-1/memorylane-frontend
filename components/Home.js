@@ -55,9 +55,9 @@ function Home() {
     dispatch(toggleIsModalOpen(false));
   }, []);
 
-  useEffect(() => {
-    isLoading && toast.info("Chargement en cours, merci de patienter 😎");
-  }, [isLoading]);
+  // useEffect(() => {
+  //   isLoading && toast.info("Chargement en cours, merci de patienter 😎");
+  // }, [isLoading]);
 
   const sortedMemories =
     memories && Array.isArray(memories)
@@ -118,8 +118,8 @@ function Home() {
   const onSuccess = () => {
     dispatch(toggleIsModalOpen(false));
     getMemories();
-    toast.success(isEditing ? "Souvenir modifié !" : "Souvenir enregistré !");
-    dispatch(setSelectedMemory(null));
+    toast.success(isEditing && "Souvenir modifié !");
+    // dispatch(setSelectedMemory(null));
   };
 
   const loggedIn = () => {
@@ -196,6 +196,7 @@ function Home() {
             {selectedMemory && !isEditing && (
               <MemoryDetailModal
                 memory={selectedMemory}
+                onSuccess={onSuccess}
                 onClose={() => dispatch(setSelectedMemory(null))}
               />
             )}

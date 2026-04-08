@@ -202,7 +202,10 @@ function AddMemoryForm({ onSuccess }) {
         <X
           className="cursor-pointer hover:scale-110 transition-transform"
           color="black"
-          onClick={() => dispatch(toggleIsModalOpen(false))}
+          onClick={() => {
+            dispatch(toggleIsModalOpen(false));
+            dispatch(toggleIsEditing(false));
+          }}
         />
         <input
           className="m-2 text-center   bg-transparent rounded text-gray-800 p-2"
@@ -360,8 +363,9 @@ function AddMemoryForm({ onSuccess }) {
           </button>
         ) : (
           <button
+            disabled={isLoading}
             type="button"
-            className=" rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white"
+            className={`${isLoading && "opacity-50 cursor-not-allowed"} rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white`}
             style={{
               background: `linear-gradient(135deg, ${couleurPrincipale} 0%, ${couleurSecondaire} 100%)`,
             }}

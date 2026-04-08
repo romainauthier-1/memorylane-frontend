@@ -3,6 +3,9 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   isModalOpen: false,
   isEditing: false,
+  isEditingCaption: false,
+  isEditingTitle: false,
+  isEditingDescription: false,
   selectedMemory: null,
   isLogged: false,
   isLoading: false,
@@ -18,6 +21,15 @@ export const statesSlice = createSlice({
     },
     toggleIsEditing: (state, action) => {
       state.isEditing = action.payload;
+    },
+    toggleIsEditingCaption: (state, action) => {
+      state.isEditingCaption = action.payload;
+    },
+    toggleIsEditingTitle: (state, action) => {
+      state.isEditingTitle = action.payload;
+    },
+    toggleIsEditingDescription: (state, action) => {
+      state.isEditingDescription = action.payload;
     },
     setSelectedMemory: (state, action) => {
       state.selectedMemory = action.payload;
@@ -37,6 +49,9 @@ export const statesSlice = createSlice({
 export const {
   toggleIsModalOpen,
   toggleIsEditing,
+  toggleIsEditingCaption,
+  toggleIsEditingTitle,
+  toggleIsEditingDescription,
   setSelectedMemory,
   toggleIsLogged,
   toggleIsLoading,
