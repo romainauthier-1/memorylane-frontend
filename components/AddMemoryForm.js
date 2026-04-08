@@ -193,7 +193,7 @@ function AddMemoryForm({ onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-scroll">
       <form
         className="flex flex-col justify-center items-center p-2 z-10 bg-slate-100 rounded-lg w-[95%] md:w-[70%] lg:max-w-md"
         method="post"
