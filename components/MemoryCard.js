@@ -18,6 +18,7 @@ function MemoryCard({
   const backendURL = process.env.NEXT_PUBLIC_URL_BACKEND;
   const finalSrc = src && src.startsWith("http") ? src : `${backendURL}${src}`;
   const dispatch = useDispatch();
+  const memoryThumbnailType = memory.medias[0].type;
 
   const handleDeleteMemory = async (memoryId) => {
     if (window.confirm("Supprimer ce précieux souvenir ?")) {
@@ -71,14 +72,26 @@ function MemoryCard({
           className="cursor-pointer hover:scale-110 transition-transform"
         />
       </div>
-      <Image
-        onClick={onDetailClick}
-        className="object-cover rounded-md"
-        width="300"
-        height="300"
-        alt={title}
-        src={finalSrc}
-      />
+      {memoryThumbnailType === "video" ? (
+        <video
+          muted
+          onClick={onDetailClick}
+          className="object-cover rounded-md"
+          width="300"
+          height="300"
+          alt={title}
+          src={finalSrc}
+        />
+      ) : (
+        <Image
+          onClick={onDetailClick}
+          className="object-cover rounded-md"
+          width="300"
+          height="300"
+          alt={title}
+          src={finalSrc}
+        />
+      )}
       <p className="text-center p-2">{memory.description}</p>
     </div>
   );

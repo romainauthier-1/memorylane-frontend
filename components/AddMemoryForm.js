@@ -130,22 +130,37 @@ function AddMemoryForm({ onSuccess }) {
   };
 
   useEffect(() => {
-    const tempUrl = upload.map((file) => URL.createObjectURL(file));
+    const tempInfos = upload.map((file) => ({
+      url: URL.createObjectURL(file),
+      type: file.type,
+    }));
 
-    setPreviews(tempUrl);
+    setPreviews(tempInfos);
 
     return () => {
-      tempUrl.forEach((url) => URL.revokeObjectURL(url));
+      tempInfos.forEach((info) => URL.revokeObjectURL(info.url));
     };
   }, [upload]);
 
-  const previewImages = previews.map((url, i) => {
+  const previewImages = previews.map((preview, i) => {
+    if (preview.type.startsWith("/video")) {
+      return (
+        <video
+          key={preview.url}
+          src={preview.url}
+          height={100}
+          width={100}
+          alt={`preview ${i}`}
+          className="object-cover rounded-md "
+        />
+      );
+    }
     return (
       <Image
-        key={url}
-        src={url}
-        height={200}
-        width={200}
+        key={preview.url}
+        src={preview.url}
+        height={100}
+        width={100}
         alt={`preview ${i}`}
         className="object-cover rounded-md "
       />
@@ -233,10 +248,10 @@ function AddMemoryForm({ onSuccess }) {
               multiple
               id="upload"
               type="file"
-              accept="image/png, image/jpg, image/jpeg, audio/PCM, audio/WAV, audio/mp3, audio/AIFF, video/mov, video/mp4, video/AVI, video/FLV, video/MKV"
+              accept="image/*, audio/*, video/*"
               onChange={(e) => setUpload(Array.from(e.target.files))}
             ></input>
-            <div className="overflow-scroll max-h-48">
+            <div className="overflow-scroll max-h-48 flex flex-wrap gap-2">
               {previewImages ? previewImages : "Aucun fichier sélectionné"}
             </div>
           </>

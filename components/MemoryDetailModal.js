@@ -8,10 +8,20 @@ import {
   toggleIsEditingDescription,
 } from "../reducers/states";
 import { useSelector, useDispatch } from "react-redux";
-import { Pencil } from "lucide-react";
+import { Pencil, X, Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { uploadFile } from "../services/api";
 
-export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
+export default function MemoryDetailModal({
+  memory: initialMemory,
+  onClose,
+  onSuccess,
+}) {
+  const memories = useSelector((state) => state.memories.value);
+
+  const memory =
+    memories.find((m) => m._id === initialMemory._id) || initialMemory;
+
   const backendURL = process.env.NEXT_PUBLIC_URL_BACKEND;
   const isEditingCaption = useSelector(
     (state) => state.states.isEditingCaption,
@@ -129,7 +139,14 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
         key={i}
         className="snap-center shrink-0 w-full flex flex-col items-center justify-center p-4 no-scrollbar"
       >
-        <div className="relative flex flex-col items-center justify-center h-full w-full">
+        <div className="group relative flex flex-col items-center justify-center h-full w-full">
+          <button
+            onClick={(e) => handleDeleteMedia(e, memory._id, media._id)}
+            className="absolute top-4 right-4 z-30 p-2 bg-black/40 hover:bg-red-600/80 backdrop-blur-md rounded-full text-white transition-all duration-300 opacity-80 md:opacity-0 md:group-hover:opacity-100 shadow-lg border border-white/20"
+            title="Supprimer ce média"
+          >
+            <Trash2 size={18} />
+          </button>
           {media.type === "image" && (
             <Image
               src={finalSrc}
@@ -179,12 +196,12 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
                       onChange={(e) => setCaption(e.target.value)}
                     ></input>
                     <div className="flex flex-row justify-evenly w-full ">
-                      <buttton
+                      <button
                         className="cursor-pointer text-center text-slate-200 p-2 rounded-lg transition-all hover:bg-white hover:text-red-600 hover:font-bold "
                         onClick={() => dispatch(toggleIsEditingCaption(false))}
                       >
                         Annuler
-                      </buttton>
+                      </button>
                       <button
                         type="submit"
                         className="cursor-pointer text-center text-slate-200 p-2 rounded-lg transition-all hover:bg-white hover:text-cyan-700 hover:font-bold "
@@ -224,6 +241,160 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
       year: "numeric",
     });
   };
+  const [isAddMediaEditing, setIsAddMediaEditing] = useState(false);
+  const [addMediaCaption, setAddMediaCaption] = useState(null);
+  const [upload, setUpload] = useState([]);
+  const [previews, setPreviews] = useState([]);
+
+  useEffect(() => {
+    const tempInfos = upload.map((file) => ({
+      url: URL.createObjectURL(file),
+      type: file.type,
+    }));
+
+    setPreviews(tempInfos);
+
+    return () => {
+      tempInfos.forEach((info) => URL.revokeObjectURL(info.url));
+    };
+  }, [upload]);
+
+  const previewImages = previews.map((preview, i) => {
+    if (preview.type.startsWith("/video")) {
+      return (
+        <video
+          key={preview.url}
+          src={preview.url}
+          height={100}
+          width={100}
+          alt={`preview ${i}`}
+          className="object-cover rounded-md "
+        />
+      );
+    }
+    return (
+      <Image
+        key={preview.url}
+        src={preview.url}
+        height={100}
+        width={100}
+        alt={`preview ${i}`}
+        className="object-cover rounded-md "
+      />
+    );
+  });
+
+  const handleAddMedia = async (e, upload, memoryId) => {
+    e.preventDefault();
+    dispatch(toggleIsLoading(true));
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    const token = localStorage.getItem("token");
+    // console.log("TOKEN RÉCUPÉRÉ: ", token);
+    // console.log("1. État de upload :", upload);
+
+    if (!upload || !token) {
+      // console.error("Erreur : Aucun fichier sélectionné !");
+      toast.error("Oups, petit problème...");
+      return;
+    }
+
+    const mediasForDB = [];
+
+    for (const file of upload) {
+      let fileToUpload = file;
+      if (file.name.toLowerCase().endsWith(".heic")) {
+        const heic2any = (await import("heic2any")).default;
+        const blob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.6,
+        });
+
+        fileToUpload = new File(
+          [Array.isArray(blob) ? blob[0] : blob],
+          file.name.replace(/\.heic/i, ".jpg"),
+          { type: "image/jpeg" },
+        );
+      }
+
+      const fileData = new FormData();
+      console.log("FileToUpload:", fileToUpload);
+      fileData.append("file", fileToUpload);
+      // console.log("2. Appel de uploadFile...");
+
+      const infosImage = await uploadFile(fileData);
+      // console.log("3. Retour de urlImage :", infosImage);
+      if (infosImage && infosImage.result) {
+        mediasForDB.push({
+          url: infosImage.url,
+          type: infosImage.type,
+          caption: addMediaCaption,
+        });
+      } else {
+        // console.log("InfosImage qui a échoué: ", infosImage);
+        toast.error("L'upload a échoué, sorry");
+        console.error("L'upload a échoué sur le serveur");
+        return;
+      }
+    }
+
+    // console.log("LE COLIS FINAL :", mediasForDB);
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/add-media`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mediasForDB),
+      },
+    );
+    const data = await response.json();
+    // console.log("RÉPONSE FINALE: ", response);
+    if (data.result) {
+      dispatch(toggleIsLoading(false));
+      setUpload([]);
+      setAddMediaCaption("");
+      setIsAddMediaEditing(false);
+      onSuccess();
+      toast.success(data.message);
+      setTimeout(() => {
+        const container = document.getElementById("media-carrousel");
+        if (container) {
+          container.scrollTo({
+            left: container.scrollWidth,
+            behavior: "smooth",
+          });
+        }
+      }, 500);
+    }
+  };
+
+  const handleDeleteMedia = async (e, memoryId, mediaId) => {
+    e.preventDefault();
+
+    if (!window.confirm("Es-tu sûr de vouloir supprimer ce média ?")) {
+      return;
+    }
+
+    dispatch(toggleIsLoading(true));
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/delete-media/${mediaId}`,
+        { method: "POST", headers: { "Content-Type": "application/json" } },
+      );
+      const data = await response.json();
+
+      if (data.result) {
+        dispatch(toggleIsLoading(false));
+        onSuccess();
+        toast.success(data.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-10">
@@ -252,12 +423,12 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
                     onChange={(e) => setTitle(e.target.value)}
                   ></input>
                   <div className="flex flex-row justify-evenly w-full ">
-                    <buttton
+                    <button
                       className="cursor-pointer text-center text-slate-200 p-2 rounded-lg transition-all hover:bg-white hover:text-red-600 hover:font-bold "
                       onClick={() => dispatch(toggleIsEditingTitle(false))}
                     >
                       Annuler
-                    </buttton>
+                    </button>
                     <button
                       type="submit"
                       className="cursor-pointer text-center text-slate-200 p-2 rounded-lg transition-all hover:bg-white hover:text-cyan-700 hover:font-bold "
@@ -307,14 +478,14 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
                     onChange={(e) => setDescription(e.target.value)}
                   ></input>
                   <div className="flex flex-row justify-evenly w-full ">
-                    <buttton
+                    <button
                       className="cursor-pointer text-center text-slate-200 p-2 rounded-lg transition-all hover:bg-white hover:text-red-600 hover:font-bold "
                       onClick={() =>
                         dispatch(toggleIsEditingDescription(false))
                       }
                     >
                       Annuler
-                    </buttton>
+                    </button>
                     <button
                       type="submit"
                       className="cursor-pointer text-center text-slate-200 p-2 rounded-lg transition-all hover:bg-white hover:text-cyan-700 hover:font-bold "
@@ -341,6 +512,67 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
               </span>
             )}
           </div>
+          <Plus
+            size={10}
+            onClick={() => setIsAddMediaEditing(true)}
+            className="bg-white/10 cursor-pointer hover:bg-white/20 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all border border-white/20"
+          />
+
+          {isAddMediaEditing ? (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+              <form
+                className="flex flex-col my-auto max-h-full justify-center items-center p-2 z-10 bg-slate-100 rounded-lg w-[95%] md:w-[70%] lg:max-w-md"
+                method="post"
+                onSubmit={(e) => handleAddMedia(e, upload, memory._id)}
+              >
+                <X
+                  className="cursor-pointer hover:scale-110 transition-transform"
+                  color="black"
+                  onClick={() => {
+                    setIsAddMediaEditing(false);
+                  }}
+                />
+
+                <textarea
+                  className="m-2 text-center  bg-transparent rounded  text-gray-800 p-2"
+                  id="addMediaCaption"
+                  placeholder="Ajoute une légende"
+                  value={addMediaCaption}
+                  onChange={(e) => {
+                    setAddMediaCaption(e.target.value);
+                  }}
+                ></textarea>
+                <>
+                  <label className="m-2 text-center" for="upload">
+                    Ajouter un ou plusieurs fichier(s)
+                  </label>
+                  <input
+                    className="m-1"
+                    multiple
+                    id="upload"
+                    type="file"
+                    accept="image/*, audio/*, video/*"
+                    onChange={(e) => setUpload(Array.from(e.target.files))}
+                  ></input>
+                  <div className="overflow-scroll max-h-48 flex flex-wrap gap-2">
+                    {previewImages
+                      ? previewImages
+                      : "Aucun fichier sélectionné"}
+                  </div>
+                </>
+
+                <button
+                  disabled={isLoading}
+                  className={`${isLoading && "opacity-50 cursor-not-allowed"} rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white`}
+                  type="submit"
+                  value="Ajouter au souvenir"
+                >
+                  <span>Ajouter au souvenir</span>
+                </button>
+              </form>
+            </div>
+          ) : null}
+
           <button
             onClick={() => {
               dispatch(toggleIsEditingTitle(false));
@@ -356,7 +588,10 @@ export default function MemoryDetailModal({ memory, onClose, onSuccess }) {
             ✕
           </button>
         </div>
-        <div className="flex-1 flex flex-row overflow-x-auto snap-x snap-mandatory no-scrollbar">
+        <div
+          className="flex-1 flex flex-row overflow-x-auto snap-x snap-mandatory no-scrollbar"
+          id="media-carrousel"
+        >
           {memoriesToDisplay}
         </div>
       </div>

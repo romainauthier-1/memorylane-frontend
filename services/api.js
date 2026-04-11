@@ -1,12 +1,18 @@
 import axios from "axios";
 
 const getAllMemories = async (token) => {
-  // console.log("url backend: ", process.env.NEXT_PUBLIC_URL_BACKEND);
-  const response = await axios.get(
+  const response = await fetch(
     `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/all`,
-    { headers: { Authorization: `Bearer ${token}` } },
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    },
   );
-  return response.data.memories;
+  const data = await response.json();
+  return data.memories;
 };
 
 const createMemory = async (memoryData, token) => {
