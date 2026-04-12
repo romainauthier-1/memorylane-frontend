@@ -65,6 +65,8 @@ function AddMemoryForm({ onSuccess }) {
     if (!upload || !token) {
       // console.error("Erreur : Aucun fichier sélectionné !");
       toast.error("Oups, petit problème...");
+      dispatch(toggleIsLoading(false));
+
       return;
     }
 
@@ -88,7 +90,7 @@ function AddMemoryForm({ onSuccess }) {
       }
 
       const fileData = new FormData();
-      console.log("FileToUpload:", fileToUpload);
+      // console.log("FileToUpload:", fileToUpload);
       fileData.append("file", fileToUpload);
       // console.log("2. Appel de uploadFile...");
 
@@ -103,6 +105,7 @@ function AddMemoryForm({ onSuccess }) {
       } else {
         // console.log("InfosImage qui a échoué: ", infosImage);
         toast.error("L'upload a échoué, sorry");
+        dispatch(toggleIsLoading(false));
         console.error("L'upload a échoué sur le serveur");
         return;
       }
@@ -376,7 +379,9 @@ function AddMemoryForm({ onSuccess }) {
             type="submit"
             value="Ajouter le souvenir"
           >
-            <span>Ajouter le souvenir</span>
+            <span>
+              {isLoading ? "Envoi en cours..." : "Ajouter le souvenir"}
+            </span>
           </button>
         ) : (
           <button
@@ -389,7 +394,9 @@ function AddMemoryForm({ onSuccess }) {
             onClick={(e) => handleUpdate(e, selectedMemory._id)}
             value="Modifier le souvenir"
           >
-            <span>Modifier le souvenir</span>
+            <span>
+              {isLoading ? "Envoi en cours..." : "Modifier le souvenir"}
+            </span>
           </button>
         )}
       </form>
