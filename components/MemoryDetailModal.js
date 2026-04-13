@@ -288,86 +288,66 @@ export default function MemoryDetailModal({
     e.preventDefault();
     dispatch(toggleIsLoading(true));
 
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    try {
+      const token = localStorage.getItem("token");
+      const mediasForDB = [];
 
-    const token = localStorage.getItem("token");
-    // console.log("TOKEN RÉCUPÉRÉ: ", token);
-    // console.log("1. État de upload :", upload);
-
-    if (!upload || !token) {
-      // console.error("Erreur : Aucun fichier sélectionné !");
-      toast.error("Oups, petit problème...");
-      return;
-    }
-
-    const mediasForDB = [];
-
-    for (const file of upload) {
-      let fileToUpload = file;
-      if (file.name.toLowerCase().endsWith(".heic")) {
-        const heic2any = (await import("heic2any")).default;
-        const blob = await heic2any({
-          blob: file,
-          toType: "image/jpeg",
-          quality: 0.6,
-        });
-
-        fileToUpload = new File(
-          [Array.isArray(blob) ? blob[0] : blob],
-          file.name.replace(/\.heic/i, ".jpg"),
-          { type: "image/jpeg" },
-        );
-      }
-
-      const fileData = new FormData();
-      console.log("FileToUpload:", fileToUpload);
-      fileData.append("file", fileToUpload);
-      // console.log("2. Appel de uploadFile...");
-
-      const infosImage = await uploadFile(fileData);
-      // console.log("3. Retour de urlImage :", infosImage);
-      if (infosImage && infosImage.result) {
-        mediasForDB.push({
-          url: infosImage.url,
-          type: infosImage.type,
-          caption: addMediaCaption,
-        });
-      } else {
-        // console.log("InfosImage qui a échoué: ", infosImage);
-        toast.error("L'upload a échoué, sorry");
-        console.error("L'upload a échoué sur le serveur");
+      if (!upload || !token) {
+        // console.error("Erreur : Aucun fichier sélectionné !");
+        toast.error("Oups, petit problème...");
         return;
       }
-    }
 
-    // console.log("LE COLIS FINAL :", mediasForDB);
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/add-media`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(mediasForDB),
-      },
-    );
-    const data = await response.json();
-    // console.log("RÉPONSE FINALE: ", response);
-    if (data.result) {
-      dispatch(toggleIsLoading(false));
-      setUpload([]);
-      setAddMediaCaption("");
-      setIsAddMediaEditing(false);
-      onSuccess();
-      toast.success(data.message);
-      setTimeout(() => {
-        const container = document.getElementById("media-carrousel");
-        if (container) {
-          container.scrollTo({
-            left: container.scrollWidth,
-            behavior: "smooth",
+      for (const file of upload) {
+        const infosMedia = await uploadFile(file);
+
+        if (infosMedia.url) {
+          mediasForDB.push({
+            url: infosMedia.url,
+            type: infosMedia.type,
+            caption: addMediaCaption,
           });
+        } else {
+          throw new Error("Un upload a échoué : ", file.name);
         }
-      }, 500);
+      }
+      // console.log("LE COLIS FINAL :", mediasForDB);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/add-media`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(mediasForDB),
+        },
+      );
+
+      const data = await response.json();
+      // console.log("RÉPONSE FINALE: ", response);
+      if (data.result) {
+        dispatch(toggleIsLoading(false));
+        setUpload([]);
+        setAddMediaCaption("");
+        setIsAddMediaEditing(false);
+
+        onSuccess();
+        toast.success(data.message);
+        setTimeout(() => {
+          const container = document.getElementById("media-carrousel");
+          if (container) {
+            container.scrollTo({
+              left: container.scrollWidth,
+              behavior: "smooth",
+            });
+          }
+        }, 500);
+      }
+    } catch (error) {
+      toast.error("Erreur d'upload...");
+    } finally {
+      dispatch(toggleIsLoading(false));
     }
+    // console.log("TOKEN RÉCUPÉRÉ: ", token);
+    // console.log("1. État de upload :", upload);
   };
 
   const handleDeleteMedia = async (e, memoryId, mediaId) => {
@@ -564,6 +544,9 @@ export default function MemoryDetailModal({
                 <button
                   disabled={isLoading}
                   className={`${isLoading && "opacity-50 cursor-not-allowed"} rounded-md m-4 p-3 hover:scale-105 transition-transform hover:text-white`}
+                  style={{
+                    background: `linear-gradient(135deg, ${memory.colors[0]} 0%, ${memory.colors[1]} 100%)`,
+                  }}
                   type="submit"
                   value="Ajouter au souvenir"
                 >

@@ -34,10 +34,18 @@ function Home() {
   const dispatch = useDispatch();
 
   const getMemories = async () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const memoriesResult = await getAllMemories(token);
-      dispatch(setMemories(memoriesResult));
+    dispatch(toggleIsLoading(true));
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const memoriesResult = await getAllMemories(token);
+        dispatch(setMemories(memoriesResult));
+        dispatch(toggleIsLoading(false));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      dispatch(toggleIsLoading(false));
     }
   };
 
@@ -54,10 +62,6 @@ function Home() {
     dispatch(toggleIsMobile(window.innerWidth < 768));
     dispatch(toggleIsModalOpen(false));
   }, []);
-
-  // useEffect(() => {
-  //   isLoading && toast.info("Chargement en cours, merci de patienter 😎");
-  // }, [isLoading]);
 
   const sortedMemories =
     memories && Array.isArray(memories)
@@ -99,21 +103,6 @@ function Home() {
       dispatch(toggleIsEditing(false));
     }
   };
-  // const success = () => {
-  //   toast.success("Ce clic est un succès !");
-  // };
-
-  // const warning = () => {
-  //   toast.warn("Ce clic est un warning !");
-  // };
-
-  // const fail = () => {
-  //   toast.error("Ce clic est une erreur !");
-  // };
-
-  // const info = () => {
-  //   toast.info("Ce clic est une info !");
-  // };
 
   const onSuccess = () => {
     dispatch(toggleIsModalOpen(false));
@@ -140,6 +129,17 @@ function Home() {
 
   return (
     <div>
+      {isLoading && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md rounded-3xl">
+          <div className="w-16 h-16 border-4 border-t-cyan-500 border-white/20 rounded-full animate-spin mb-4"></div>
+          <p className="text-white font-bold text-lg animate-pulse">
+            Chargement en cours...
+          </p>
+          <p className="text-white/50 text-sm mt-2">
+            Patience, ça peut être un peu long 🧘‍♂️
+          </p>
+        </div>
+      )}
       <main
         className="flex flex-col content-center h-full w-full justify-center items-center overflow-hidden"
         style={{

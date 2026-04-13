@@ -37,10 +37,28 @@ const createMemory = async (memoryData, token) => {
   }
 };
 
-const uploadFile = async (formData) => {
+const uploadFile = async (file) => {
   try {
+    // 1. Obtenir la signature du backend
+    const signResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads/cloudinary-signature`,
+    );
+    const signData = await signResponse.json();
+
+    if (!signData.result) {
+      throw new Error("Impossible d'obtenir la signature Cloudinary");
+    }
+
+    // 2. Construire le FormData pour Cloudinary (Direct)
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("api_key", signData.apiKey);
+    formData.append("timestamp", signData.timestamp);
+    formData.append("signature", signData.signature);
+
+    // 3. Fetch direct vers Cloudinary
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads`,
+      `https://api.cloudinary.com/v1_1/${signData.cloudName}/auto/upload`,
       {
         method: "POST",
         body: formData,
@@ -48,9 +66,14 @@ const uploadFile = async (formData) => {
     );
 
     const data = await response.json();
-    return data;
+
+    return {
+      result: true,
+      url: data.secure_url,
+      type: data.resource_type,
+    };
   } catch (error) {
-    console.error(error);
+    console.error("Erreur Upload direct:", error);
     return { result: false };
   }
 };

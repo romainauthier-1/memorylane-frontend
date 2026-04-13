@@ -38,10 +38,10 @@ export const statesSlice = createSlice({
       state.isLogged = action.payload;
     },
     toggleIsLoading: (state, action) => {
-      state.isModalOpen = action.payload;
+      state.isLoading = action.payload;
     },
     toggleIsMobile: (state, action) => {
-      state.isModalOpen = action.payload;
+      state.isMobile = action.payload;
     },
   },
 });

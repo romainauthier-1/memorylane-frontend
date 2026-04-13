@@ -51,85 +51,63 @@ function AddMemoryForm({ onSuccess }) {
       : new Date().toISOString().split("T")[0],
   );
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     dispatch(toggleIsLoading(true));
 
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    try {
+      const token = localStorage.getItem("token");
+      const mediasForDB = [];
 
-    const token = localStorage.getItem("token");
-    // console.log("TOKEN RÉCUPÉRÉ: ", token);
-    // console.log("1. État de upload :", upload);
-
-    if (!upload || !token) {
-      // console.error("Erreur : Aucun fichier sélectionné !");
-      toast.error("Oups, petit problème...");
-      dispatch(toggleIsLoading(false));
-
-      return;
-    }
-
-    const mediasForDB = [];
-
-    for (const file of upload) {
-      let fileToUpload = file;
-      if (file.name.toLowerCase().endsWith(".heic")) {
-        const heic2any = (await import("heic2any")).default;
-        const blob = await heic2any({
-          blob: file,
-          toType: "image/jpeg",
-          quality: 0.6,
-        });
-
-        fileToUpload = new File(
-          [Array.isArray(blob) ? blob[0] : blob],
-          file.name.replace(/\.heic/i, ".jpg"),
-          { type: "image/jpeg" },
-        );
-      }
-
-      const fileData = new FormData();
-      // console.log("FileToUpload:", fileToUpload);
-      fileData.append("file", fileToUpload);
-      // console.log("2. Appel de uploadFile...");
-
-      const infosImage = await uploadFile(fileData);
-      // console.log("3. Retour de urlImage :", infosImage);
-      if (infosImage && infosImage.result) {
-        mediasForDB.push({
-          url: infosImage.url,
-          type: infosImage.type,
-          caption: description,
-        });
-      } else {
-        // console.log("InfosImage qui a échoué: ", infosImage);
-        toast.error("L'upload a échoué, sorry");
-        dispatch(toggleIsLoading(false));
-        console.error("L'upload a échoué sur le serveur");
+      if (!upload || !token) {
+        // console.error("Erreur : Aucun fichier sélectionné !");
+        toast.error("Oups, petit problème...");
         return;
       }
-    }
 
-    const memoryData = {
-      title: title,
-      startDate: startDate,
-      endDate: memoryType === "period" ? endDate : null,
-      type: memoryType,
-      thumbnail: mediasForDB[0].url,
-      position: {
-        x: Math.floor(Math.random() * 80),
-        y: Math.floor(Math.random() * 80),
-      },
-      medias: mediasForDB,
-      colors: [couleurPrincipale, couleurSecondaire],
-      description: description,
-    };
-    // console.log("LE COLIS FINAL :", memoryData);
-    const response = await createMemory(memoryData, token);
-    // console.log("RÉPONSE FINALE: ", response);
-    dispatch(toggleIsLoading(false));
-    response.result && onSuccess();
+      for (const file of upload) {
+        const infosMedia = await uploadFile(file);
+        if (infosMedia && infosMedia.result) {
+          mediasForDB.push({
+            url: infosMedia.url,
+            type: infosMedia.type,
+            caption: description,
+          });
+        } else {
+          toast.error("L'upload a échoué, sorry");
+          console.error("L'upload a échoué sur le serveur");
+        }
+      }
+
+      const memoryData = {
+        title: title,
+        startDate: startDate,
+        endDate: memoryType === "period" ? endDate : null,
+        type: memoryType,
+        thumbnail: mediasForDB[0].url,
+        position: {
+          x: Math.floor(Math.random() * 80),
+          y: Math.floor(Math.random() * 80),
+        },
+        medias: mediasForDB,
+        colors: [couleurPrincipale, couleurSecondaire],
+        description: description,
+      };
+      // console.log("LE COLIS FINAL :", memoryData);
+
+      const response = await createMemory(memoryData, token);
+      // console.log("RÉPONSE FINALE: ", response);
+
+      if (response.result) {
+        onSuccess();
+        toast.success("Souvenir ajouté avec succès !");
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'upload du fichier: ");
+      toast.error("Problème lors du chargement du fichier");
+    } finally {
+      dispatch(toggleIsLoading(false));
+    }
   };
 
   useEffect(() => {
