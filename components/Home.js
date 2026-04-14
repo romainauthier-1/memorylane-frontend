@@ -152,30 +152,6 @@ function Home() {
           <h1 className=" font-sans  text-3xl md:text-5xl text-purple-600 tracking-widest scale-120 md:scale-150 animate-pulse transform uppercase m-6">
             Memory Lane
           </h1>
-          {/* <button
-          onClick={info}
-          className="bg-blue-500 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-        >
-          INFO
-        </button>
-        <button
-          onClick={fail}
-          className="bg-red-600 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-        >
-          FAIL
-        </button>
-        <button
-          onClick={warning}
-          className="bg-orange-400 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-        >
-          WARNING
-        </button>
-        <button
-          onClick={success}
-          className="bg-green-600 text-white rounded-md px-4 p-3 text-center hover:scale-105 transition-transform"
-        >
-          SUCCESS
-        </button> */}
           {memories?.length > 0 ? (
             <p className="m-7 ">Retrouves tes souvenirs !</p>
           ) : (

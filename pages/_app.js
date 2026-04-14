@@ -35,6 +35,23 @@ function App({ Component, pageProps }) {
         <PersistGate persistor={persistor}>
           <Head>
             <title>MemoryLane</title>
+
+            <link
+              rel="apple-touch-icon"
+              sizes="180x180"
+              href="/AppIconMemoryLane_v2.png"
+            />
+
+            <meta name="theme-color" content="#7c3aed" />
+
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+
+            <meta
+              name="apple-mobile-web-app-status-bar-style"
+              content="black-translucent"
+            />
+
+            <meta name="apple-mobile-web-app-title" content="MemoryLane" />
           </Head>
           <ToastContainer />
           <Component {...pageProps} />
