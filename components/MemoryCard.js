@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { deleteMemory } from "../reducers/memories";
+import { authHeaders } from "../services/api";
 import { toast } from "react-toastify";
 import { Trash2, Pencil } from "lucide-react";
 
@@ -25,7 +26,7 @@ function MemoryCard({
       try {
         const response = await fetch(`${backendURL}/memories/${memoryId}`, {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
         });
 
         const data = await response.json();

@@ -1,7 +1,8 @@
 {
-  "name": "nextjs-template",
+  "name": "memorylane-frontend",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "yarn@4.9.2",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
@@ -10,8 +11,6 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
-    "axios": "^1.13.4",
-    "heic2any": "^0.0.4",
     "lucide-react": "^1.7.0",
     "next": "12.1.6",
     "react": "18.1.0",
@@ -21,11 +20,7 @@
     "redux-persist": "^6.0.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.2.0",
     "autoprefixer": "^10.4.24",
-    "jest": "^28.1.0",
-    "jest-environment-jsdom": "^28.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "3.4"
   }
