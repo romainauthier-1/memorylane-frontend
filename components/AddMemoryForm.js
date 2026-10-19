@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Image from "next/image";
-import { createMemory, uploadFile } from "../services/api";
+import { authHeaders, createMemory, uploadFile } from "../services/api";
 import { toast } from "react-toastify";
 import {
   toggleIsModalOpen,
@@ -156,7 +156,7 @@ function AddMemoryForm({ onSuccess }) {
         `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify({
             title,
             description,

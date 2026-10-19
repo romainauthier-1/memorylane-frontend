@@ -10,7 +10,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { Pencil, X, Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
-import { uploadFile } from "../services/api";
+import { authHeaders, uploadFile } from "../services/api";
 
 export default function MemoryDetailModal({
   memory: initialMemory,
@@ -42,7 +42,7 @@ export default function MemoryDetailModal({
         `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/caption/${memoryId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify({
             mediaNewCaption: newCaption,
             mediaIndex: i,
@@ -73,7 +73,7 @@ export default function MemoryDetailModal({
         `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/title/${memoryId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify({
             newTitle,
           }),
@@ -103,7 +103,7 @@ export default function MemoryDetailModal({
         `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/description/${memoryId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify({
             newDescription,
           }),
@@ -316,7 +316,7 @@ export default function MemoryDetailModal({
         `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/add-media`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify(mediasForDB),
         },
       );
@@ -361,8 +361,8 @@ export default function MemoryDetailModal({
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/delete-media/${mediaId}`,
-        { method: "POST", headers: { "Content-Type": "application/json" } },
+        `${process.env.NEXT_PUBLIC_URL_BACKEND}/memories/${memoryId}/media/${mediaId}`,
+        { method: "DELETE", headers: authHeaders() },
       );
       const data = await response.json();
 

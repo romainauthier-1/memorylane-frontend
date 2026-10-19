@@ -1,4 +1,8 @@
-import axios from "axios";
+// En-têtes JSON + token de l'utilisateur connecté
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token")}`,
+});
 
 const getAllMemories = async (token) => {
   const response = await fetch(
@@ -42,6 +46,7 @@ const uploadFile = async (file) => {
     // 1. Obtenir la signature du backend
     const signResponse = await fetch(
       `${process.env.NEXT_PUBLIC_URL_BACKEND}/uploads/cloudinary-signature`,
+      { headers: authHeaders() },
     );
     const signData = await signResponse.json();
 
@@ -78,4 +83,4 @@ const uploadFile = async (file) => {
   }
 };
 
-export { getAllMemories, createMemory, uploadFile };
+export { authHeaders, getAllMemories, createMemory, uploadFile };
